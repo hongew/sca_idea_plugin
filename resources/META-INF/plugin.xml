@@ -29,13 +29,13 @@
 
   <application-components>
     <component>
-      <implementation-class>com.seczone.sca.idea.plugin.ShowComponent</implementation-class>
+      <implementation-class>com.seczone.sca.idea.plugin.component.ShowComponent</implementation-class>
     </component>
   </application-components>
 
   <actions>
     <!-- Add your actions here -->
-    <action id="componentSecurity" class="com.seczone.sca.idea.plugin.ComponentSecurityAction" text="Sca Component Security" description="展示组件安全特性">
+    <action id="componentSecurity" class="com.seczone.sca.idea.plugin.action.ComponentSecurityAction" text="Sca Component Security" description="展示组件安全特性">
       <add-to-group group-id="EditorPopupMenu.GoTo" anchor="first"/>
     </action>
   </actions>

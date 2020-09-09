@@ -1,4 +1,4 @@
-package com.seczone.sca.idea.plugin;
+package com.seczone.sca.idea.plugin.component;
 
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.ui.Messages;
@@ -28,12 +28,15 @@ public class ShowComponent implements ApplicationComponent {
     @NotNull
     @Override
     public String getComponentName() {
-        return "com.seczone.sca.idea.plugin.ShowComponent";
+        return "showComponent";
     }
 
-    public void show(String text){
-//        String tip = "hello world";
-        Messages.showMessageDialog(text,"tip",Messages.getInformationIcon());
+    public void showInfo(String msg){
+        Messages.showMessageDialog(msg,"tip",Messages.getInformationIcon());
+    }
+
+    public void showErr(String msg){
+        Messages.showMessageDialog(msg,"error",Messages.getErrorIcon());
     }
 
 
