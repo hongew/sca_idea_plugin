@@ -18,17 +18,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
 import com.seczone.sca.idea.plugin.model.JarInfo;
-import org.fest.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author wengyongcheng
- * @since 2020/7/11 2:02 下午
+ * 显示数据
  */
 public class CustomExecutor implements Disposable {
 
@@ -102,12 +101,13 @@ public class CustomExecutor implements Disposable {
 
     private JPanel createConsolePanel(ConsoleView consoleView,List<JarInfo> jarInfoList) {
 //        panel.add(consoleView.getComponent(), BorderLayout.CENTER);
-        JPanel panel = new JPanel();
-        JLabel label1=new JLabel("证件类型：");
         List<String> collect = jarInfoList.stream().map(jarInfo -> jarInfo.getShowInfo()).collect(Collectors.toList());
-        JList list=new JList(collect.toArray());
-        panel.add(label1);
-        panel.add(list);
+
+        JPanel panel = new JPanel();
+        DefaultMutableTreeNode root=new DefaultMutableTreeNode("pom dependency");
+
+        JTree tree=new JTree(root);
+        panel.add(tree);
         return panel;
     }
 }
