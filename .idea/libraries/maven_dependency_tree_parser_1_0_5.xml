@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="maven-dependency-tree-parser-1.0.5">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/resources/lib/maven-dependency-tree-parser-1.0.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/resources/lib/maven-invoker-3.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/resources/lib/maven-model-3.6.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
