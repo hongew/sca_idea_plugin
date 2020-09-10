@@ -54,6 +54,7 @@ public class CustomExecutor implements Disposable {
         Disposer.dispose(this);
     }
 
+    // 构建一个tool window并展示
     public void run() {
         if (project.isDisposed()) {
             return;
@@ -78,7 +79,7 @@ public class CustomExecutor implements Disposable {
             @NotNull
             @Override
             public String getName() {
-                return "name";
+                return "info";
             }
 
             @Nullable
@@ -102,8 +103,15 @@ public class CustomExecutor implements Disposable {
 
     private JPanel createConsolePanel(ConsoleView consoleView) {
         JPanel panel = new JPanel();
-        panel.add(consoleView.getComponent(), BorderLayout.CENTER);
-        panel.add(new JLabel("普通标签"));
+        JComboBox cmb=new JComboBox();    //创建JComboBox
+        JLabel label1=new JLabel("证件类型：");
+        cmb.addItem("--请选择--");    //向下拉列表中添加一项
+        cmb.addItem("身份证");
+        cmb.addItem("驾驶证");
+        cmb.addItem("军官证");
+        panel.add(label1);
+        panel.add(cmb);
+//        panel.add(consoleView.getComponent(), BorderLayout.CENTER);
         return panel;
     }
 }

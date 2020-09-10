@@ -10,5 +10,5 @@ import javax.swing.*;
  */
 public class IconUtil {
 
-    public static final Icon ICON = IconLoader.getIcon("/icons/edit.svg");
+    public static final Icon ICON = IconLoader.getIcon("/icons/sdk_16.svg");
 }

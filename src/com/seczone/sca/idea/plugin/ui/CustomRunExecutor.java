@@ -8,12 +8,11 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 /**
- * @author wengyongcheng
- * @since 2020/7/11 2:15 下午
+ * 定义tool window的相关静态信息
  */
 public class CustomRunExecutor extends Executor {
 
-    public static final String TOOL_WINDOW_ID = "tool window plugin";
+    public static final String TOOL_WINDOW_ID = "Component Security";
 
     @Override
     public String getToolWindowId() {
@@ -50,7 +49,7 @@ public class CustomRunExecutor extends Executor {
     @NotNull
     @Override
     public String getId() {
-        return "plugin id";
+        return "executor";
     }
 
     @NotNull
@@ -70,9 +69,7 @@ public class CustomRunExecutor extends Executor {
     }
 
     public static Executor getRunExecutorInstance() {
-//        return ExecutorRegistry.getInstance().getExecutorById("plugin id");
-        return  new CustomRunExecutor();
+        return ExecutorRegistry.getInstance().getExecutorById("executor");
     }
-
 }
 
