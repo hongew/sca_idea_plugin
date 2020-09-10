@@ -70,7 +70,7 @@ public class ComponentSecurityAction extends AnAction {
 
     private void showJarInfoSecurity(List<JarInfo> jarInfoList,Project project) {
         CustomExecutor executor = new CustomExecutor(project);
-        executor.run();
+        executor.showInfo(jarInfoList);
     }
 
     private List<JarInfo> getJarInfoList(String sql) throws Exception {

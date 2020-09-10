@@ -14,18 +14,17 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
-import com.seczone.sca.idea.plugin.util.IconUtil;
+import com.seczone.sca.idea.plugin.model.JarInfo;
+import org.fest.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wengyongcheng
@@ -55,7 +54,7 @@ public class CustomExecutor implements Disposable {
     }
 
     // 构建一个tool window并展示
-    public void run() {
+    public void showInfo(List<JarInfo> jarInfoList) {
         if (project.isDisposed()) {
             return;
         }
@@ -67,7 +66,7 @@ public class CustomExecutor implements Disposable {
 
         final RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(project);
         RunnerLayoutUi layoutUi = factory.create("runnerId", "runnerTitle", "sessionName", project);
-        final JPanel consolePanel = createConsolePanel(consoleView);
+        final JPanel consolePanel = createConsolePanel(consoleView,jarInfoList);
 
         RunContentDescriptor descriptor = new RunContentDescriptor(new RunProfile() {
             @Nullable
@@ -101,17 +100,14 @@ public class CustomExecutor implements Disposable {
         ExecutionManager.getInstance(project).getContentManager().showRunContent(executor, descriptor);
     }
 
-    private JPanel createConsolePanel(ConsoleView consoleView) {
-        JPanel panel = new JPanel();
-        JComboBox cmb=new JComboBox();    //创建JComboBox
-        JLabel label1=new JLabel("证件类型：");
-        cmb.addItem("--请选择--");    //向下拉列表中添加一项
-        cmb.addItem("身份证");
-        cmb.addItem("驾驶证");
-        cmb.addItem("军官证");
-        panel.add(label1);
-        panel.add(cmb);
+    private JPanel createConsolePanel(ConsoleView consoleView,List<JarInfo> jarInfoList) {
 //        panel.add(consoleView.getComponent(), BorderLayout.CENTER);
+        JPanel panel = new JPanel();
+        JLabel label1=new JLabel("证件类型：");
+        List<String> collect = jarInfoList.stream().map(jarInfo -> jarInfo.getShowInfo()).collect(Collectors.toList());
+        JList list=new JList(collect.toArray());
+        panel.add(label1);
+        panel.add(list);
         return panel;
     }
 }
