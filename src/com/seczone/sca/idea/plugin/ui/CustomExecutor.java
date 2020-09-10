@@ -67,7 +67,7 @@ public class CustomExecutor implements Disposable {
 
         final RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(project);
         RunnerLayoutUi layoutUi = factory.create("runnerId", "runnerTitle", "sessionName", project);
-        final JPanel consolePanel = createConsolePanel(consoleView,jarInfoList);
+        final JComponent consolePanel = createConsolePanel(consoleView,jarInfoList);
 
         RunContentDescriptor descriptor = new RunContentDescriptor(new RunProfile() {
             @Nullable
@@ -101,11 +101,11 @@ public class CustomExecutor implements Disposable {
         ExecutionManager.getInstance(project).getContentManager().showRunContent(executor, descriptor);
     }
 
-    private JPanel createConsolePanel(ConsoleView consoleView,List<JarInfo> jarInfoList) {
+    private JComponent createConsolePanel(ConsoleView consoleView,List<JarInfo> jarInfoList) {
 //        panel.add(consoleView.getComponent(), BorderLayout.CENTER);
         List<String> collect = jarInfoList.stream().map(jarInfo -> jarInfo.getShowInfo()).collect(Collectors.toList());
 
-        JPanel panel = new JPanel();
+//        JPanel panel = new JPanel();
         // 填充数据
         DefaultMutableTreeNode root=new DefaultMutableTreeNode("pom dependency");
         for (String s : collect) {
@@ -128,7 +128,11 @@ public class CustomExecutor implements Disposable {
 
         JTree tree=new JTree(root);
         tree.setCellRenderer(render);
-        panel.add(tree);
-        return panel;
+//        panel.add(tree);
+        JScrollPane scrollPane = new JScrollPane(tree);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setViewportBorder(BorderFactory.createEtchedBorder());
+
+        return scrollPane;
     }
 }
