@@ -1,5 +1,6 @@
 package com.seczone.sca.idea.plugin.util;
 
+import com.intellij.openapi.ui.Messages;
 import com.seczone.sca.idea.plugin.model.JarInfo;
 
 import java.io.FileReader;
@@ -25,8 +26,7 @@ public class JDBCUtils {
         try {
             // 读取数据库配置文件
             Properties properties = new Properties();
-            URL resource = JDBCUtils.class.getClassLoader().getResource("/config/jdbc.properties");
-            properties.load(new FileReader(resource.getPath()));
+            properties.load(JDBCUtils.class.getClassLoader().getResourceAsStream("config/jdbc.properties"));
 
             username = properties.getProperty("username");
             password = properties.getProperty("password");
@@ -36,6 +36,7 @@ public class JDBCUtils {
             Class.forName(driverClassName);
         } catch (Exception e) {
             e.printStackTrace();
+            Messages.showErrorDialog("读取数据库配置文件错误："+e.getMessage(),"error");
         }
     }
     /**
@@ -78,7 +79,7 @@ public class JDBCUtils {
     }
 
     // 查询数据
-    public static List<JarInfo> findAll(String sql){
+    public static List<JarInfo> findAll(String sql) throws Exception{
         Connection conn = null;
         Statement st = null;
         ResultSet rs = null;
@@ -97,8 +98,6 @@ public class JDBCUtils {
                 bean = new JarInfo(groupName,artifactName,version,grade);
                 list.add(bean);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }finally {
             JDBCUtils.close(rs,st,conn);
         }

@@ -6,9 +6,11 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
 import com.seczone.sca.idea.plugin.component.ShowComponent;
 import com.seczone.sca.idea.plugin.model.JarInfo;
+import com.seczone.sca.idea.plugin.ui.CustomExecutor;
 import com.seczone.sca.idea.plugin.util.JDBCUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -23,31 +25,34 @@ public class ComponentSecurityAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        ShowComponent showComponent = null;
+//        ShowComponent showComponent = null;
         try {
             System.out.println("actionPerformed start===");
-            Application application = ApplicationManager.getApplication();
-            showComponent = application.getComponent(ShowComponent.class);
+//            Application application = ApplicationManager.getApplication();
+//            showComponent = application.getComponent(ShowComponent.class);
             // 获取当前在操作的工程上下文
 //            final Project project = e.getData(PlatformDataKeys.PROJECT);
             // 获取当前操作的pom文件
             final PsiFile psiFile = e.getData(PlatformDataKeys.PSI_FILE);
             String pomPath = psiFile.getVirtualFile().getPath();
             if (!pomPath.endsWith("pom.xml")){
-                showComponent.showInfo("当前操作文件不是pom文件");
+                Messages.showInfoMessage("当前操作文件不是pom文件","tip");
                 return;
             }
             final Model model = getModel(new File(pomPath));
             final List<Dependency> dependencies = model.getDependencies();
+            Messages.showInfoMessage("dependencies.size="+dependencies.size(),"tip");
             // 拼接sql
             String sql = buildSql(dependencies);
             System.out.println("sql="+sql);
+            Messages.showInfoMessage(sql,"tip");
             if (null == sql){
-                showComponent.showErr("该pom无依赖组件");
+                Messages.showInfoMessage("该pom无依赖组件","tip");
             }else {
                 // 获取组件数据
                 List<JarInfo> jarInfoList = getJarInfoList(sql);
                 System.out.println("print jarinfos=====");
+                Messages.showInfoMessage("jarInfoList.size="+jarInfoList.size(),"tip");
                 for (JarInfo jarInfo : jarInfoList) {
                     System.out.println(jarInfo.getShowInfo());
                 }
@@ -58,18 +63,17 @@ public class ComponentSecurityAction extends AnAction {
         } catch (Exception ex) {
             System.out.println("actionPerformed err====");
             ex.printStackTrace();
-            showComponent.showErr(ex.getMessage());
+            Messages.showErrorDialog(ex.getMessage(),"error");
         }
 
     }
 
     private void showJarInfoSecurity(List<JarInfo> jarInfoList,Project project) {
-
-
-
+        CustomExecutor executor = new CustomExecutor(project);
+        executor.run();
     }
 
-    private List<JarInfo> getJarInfoList(String sql) {
+    private List<JarInfo> getJarInfoList(String sql) throws Exception {
         List<JarInfo> jarInfoList = JDBCUtils.findAll(sql);
         return jarInfoList;
     }

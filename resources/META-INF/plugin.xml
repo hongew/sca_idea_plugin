@@ -27,6 +27,10 @@
     <!-- Add your extensions here -->
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <executor implementation="com.seczone.sca.idea.plugin.ui.CustomRunExecutor" id="CustomRunExecutor"/>
+  </extensions>
+
   <application-components>
     <component>
       <implementation-class>com.seczone.sca.idea.plugin.component.ShowComponent</implementation-class>
