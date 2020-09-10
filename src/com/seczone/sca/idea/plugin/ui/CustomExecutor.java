@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,9 +106,28 @@ public class CustomExecutor implements Disposable {
         List<String> collect = jarInfoList.stream().map(jarInfo -> jarInfo.getShowInfo()).collect(Collectors.toList());
 
         JPanel panel = new JPanel();
+        // 填充数据
         DefaultMutableTreeNode root=new DefaultMutableTreeNode("pom dependency");
+        for (String s : collect) {
+            DefaultMutableTreeNode childNode=new DefaultMutableTreeNode(s);
+            childNode.add(new DefaultMutableTreeNode("cve-2020-0001"));
+            root.add(childNode);
+        }
+
+        // 设置显示样式
+        // 创建渲染器
+        DefaultTreeCellRenderer render = new DefaultTreeCellRenderer();
+        // 设置节点字体，以及 选中 和 未选中 时的颜色
+        render.setFont(new Font("SansSerif", Font.BOLD, 24));
+        render.setTextSelectionColor(Color.yellow);
+//        render.setTextNonSelectionColor(Color.black);
+
+        // 设置节点 选中 和 未选中 时的背景颜色
+//        render.setBackgroundSelectionColor(Color.black);
+        render.setBackgroundNonSelectionColor(Color.darkGray);
 
         JTree tree=new JTree(root);
+        tree.setCellRenderer(render);
         panel.add(tree);
         return panel;
     }
