@@ -184,7 +184,11 @@ public class ComponentSecurityAction extends AnAction {
         String mavenHome = getMavenHome();
         System.out.println("maven_home="+mavenHome);
         invoker.setMavenHome(new File(mavenHome));
-        invoker.execute(request);
+        InvocationResult invocationResult = invoker.execute(request);
+        int exitCode = invocationResult.getExitCode();
+        if (0!=exitCode){
+            throw new Exception("解析pom文件失败，请检查格式是否正确");
+        }
     }
 
     private String getMavenHome() throws Exception {
