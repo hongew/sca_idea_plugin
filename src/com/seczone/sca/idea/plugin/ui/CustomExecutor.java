@@ -122,12 +122,12 @@ public class CustomExecutor implements Disposable {
         // 创建渲染器
         DefaultTreeCellRenderer render = new DefaultTreeCellRenderer();
         // 设置节点字体，以及 选中 和 未选中 时的颜色
-        render.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        render.setFont(new Font("Monospaced", Font.PLAIN, 14));
         render.setTextSelectionColor(Color.yellow);
 //        render.setTextNonSelectionColor(Color.black);
         // 设置节点 选中 和 未选中 时的背景颜色
 //        render.setBackgroundSelectionColor(Color.black);
-        render.setBackgroundNonSelectionColor(Color.darkGray);
+//        render.setBackgroundNonSelectionColor(Color.darkGray);
 
         JTree tree=new JTree(root);
         tree.setCellRenderer(render);

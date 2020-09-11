@@ -47,7 +47,6 @@ public class ComponentSecurityAction extends AnAction {
             // 获取依赖组件
             Dependency rootNode = new Dependency(); // pom自身
             List<Dependency> dependencies = getPomDependency(pomPath,rootNode);
-            Messages.showInfoMessage("dependencies.size="+dependencies.size(),"tip");
             if (Utils.isEmpty(dependencies)){
                 Messages.showInfoMessage("该pom无依赖组件","tip");
                 return;
@@ -93,6 +92,7 @@ public class ComponentSecurityAction extends AnAction {
             String cveSql = buildCveSql(cveNos);
             System.out.println("cveSql="+cveSql);
             dbCves = JDBCUtils.findCves(cveSql);
+            System.out.println("dbCves.size="+dbCves.size());
         }
 
         for (JarInfo jarInfo : jarInfoList) {
@@ -110,7 +110,7 @@ public class ComponentSecurityAction extends AnAction {
     }
 
     private String getCveSeverity(String jarCveNo, List<CveInfo> dbCves) {
-        String severity ="unknown";
+        String severity ="UNKNOWN";
         for (CveInfo dbCve : dbCves) {
             if(jarCveNo.equals(dbCve.getName())){
                 return dbCve.getSeverity();

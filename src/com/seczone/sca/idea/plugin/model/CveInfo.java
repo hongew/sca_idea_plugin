@@ -2,6 +2,7 @@ package com.seczone.sca.idea.plugin.model;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.seczone.sca.idea.plugin.util.Utils;
 import lombok.Data;
 import org.fest.util.Lists;
 
@@ -29,8 +30,8 @@ public class CveInfo {
     }
 
     public String getShowInfo() {
-        String gradeStr=(null == severity || severity.length() <1)?"unknown":severity;
-        return gradeStr+"   "+name+"   "+description;
+        String gradeStr=(null == severity || severity.length() <1)?"UNKNOWN":severity;
+        return gradeStr+"   "+name+"   "+ (Utils.isEmpty(description)?"":description);
     }
 
 

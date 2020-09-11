@@ -38,7 +38,7 @@ public class JarInfo {
     }
 
     public String getShowInfo() {
-        String gradeStr=(null == grade || grade.length() <1)?"unknown":grade;
+        String gradeStr=(null == grade || grade.length() <1)?"UNKNOWN":grade;
         return gradeStr+"   "+String.format("%s:%s@%s",g,a,v);
     }
 
