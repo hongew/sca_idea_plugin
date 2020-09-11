@@ -78,8 +78,8 @@ public class JDBCUtils {
         }
     }
 
-    // 查询数据
-    public static List<JarInfo> findAll(String sql) throws Exception{
+    // 查询组件数据
+    public static List<JarInfo> findJars(String sql) throws Exception{
         Connection conn = null;
         Statement st = null;
         ResultSet rs = null;

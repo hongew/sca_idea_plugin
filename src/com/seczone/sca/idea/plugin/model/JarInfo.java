@@ -3,6 +3,9 @@ package com.seczone.sca.idea.plugin.model;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import org.fest.util.Lists;
+
+import java.util.List;
 
 /**
  * @description: 组件安全信息
@@ -18,6 +21,7 @@ public class JarInfo {
     private String v;
     private String grade;
     private String showInfo;
+    private List<CveInfo> cveInfoList = Lists.newArrayList();
 
     public JarInfo(){}
     public JarInfo(String g, String a, String v, String grade) {

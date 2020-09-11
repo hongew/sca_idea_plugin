@@ -12,13 +12,20 @@ import com.seczone.sca.idea.plugin.component.ShowComponent;
 import com.seczone.sca.idea.plugin.model.JarInfo;
 import com.seczone.sca.idea.plugin.ui.CustomExecutor;
 import com.seczone.sca.idea.plugin.util.JDBCUtils;
+import com.seczone.sca.idea.plugin.util.Utils;
+import fr.dutra.tools.maven.deptree.core.InputType;
+import fr.dutra.tools.maven.deptree.core.Node;
+import fr.dutra.tools.maven.deptree.core.Parser;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.shared.invoker.*;
+import org.fest.util.Lists;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class ComponentSecurityAction extends AnAction {
@@ -34,28 +41,23 @@ public class ComponentSecurityAction extends AnAction {
                 Messages.showInfoMessage("当前操作文件不是pom文件","tip");
                 return;
             }
-            final Model model = getModel(new File(pomPath));
-            final List<Dependency> dependencies = model.getDependencies();
+
+            // 获取依赖组件
+            Dependency rootNode = new Dependency(); // pom自身
+            List<Dependency> dependencies = getPomDependency(pomPath,rootNode);
             Messages.showInfoMessage("dependencies.size="+dependencies.size(),"tip");
-            // 拼接sql
-            String sql = buildSql(dependencies);
-            System.out.println("sql="+sql);
-            Messages.showInfoMessage(sql,"tip");
-            if (null == sql){
+            if (Utils.isEmpty(dependencies)){
                 Messages.showInfoMessage("该pom无依赖组件","tip");
-            }else {
-                // 获取组件数据
-                List<JarInfo> jarInfoList = getJarInfoList(sql);
-                System.out.println("print jarinfos=====");
-                Messages.showInfoMessage("jarInfoList.size="+jarInfoList.size(),"tip");
-                for (JarInfo jarInfo : jarInfoList) {
-                    System.out.println(jarInfo.getShowInfo());
-                }
-                // 显示组件数据
-                showJarInfoSecurity(jarInfoList,e.getProject());
+                return;
             }
+
+            // 获取依赖组件安全等级及漏洞信息
+            List<JarInfo> jarInfoList = getDependencySecurityData(dependencies);
+            // 显示组件数据
+            showJarInfoSecurity(jarInfoList,e.getProject(),rootNode);
+
             System.out.println("actionPerformed end====");
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             System.out.println("actionPerformed err====");
             ex.printStackTrace();
             Messages.showErrorDialog(ex.getMessage(),"error");
@@ -63,27 +65,124 @@ public class ComponentSecurityAction extends AnAction {
 
     }
 
-    private void showJarInfoSecurity(List<JarInfo> jarInfoList,Project project) {
-        CustomExecutor executor = new CustomExecutor(project);
-        executor.showInfo(jarInfoList);
-    }
+    // 获取依赖组件安全等级及漏洞信息
+    private List<JarInfo> getDependencySecurityData(List<Dependency> dependencies) throws Exception {
+        List<JarInfo> jarInfoList = Lists.newArrayList();
+        // 1.获取组件安全等级
+        String jarSql = buildJarSql(dependencies);
+        System.out.println("jarSql="+jarSql);
+        List<JarInfo> dbJarInfos = getJarInfoList(jarSql);
+        System.out.println("dbJarinfos.size="+dbJarInfos.size());
+        for (Dependency dependency : dependencies) {
+            String grade = getJarInfoGrade(dependency,dbJarInfos);
+            JarInfo jarInfo = new JarInfo(dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion(),grade);
+            jarInfoList.add(jarInfo);
+        }
+        // 2.获取组件漏洞
 
-    private List<JarInfo> getJarInfoList(String sql) throws Exception {
-        List<JarInfo> jarInfoList = JDBCUtils.findAll(sql);
+
+        // 3.获取漏洞安全等级
+
         return jarInfoList;
     }
 
-    // select * from jar_info where 1=2 or (g= and a= and v=) or (g= and a= and v=)
-    private String buildSql(List<Dependency> dependencies) {
-        StringBuilder sqlBuilder = new StringBuilder();
+    private String getJarInfoGrade(Dependency dependency, List<JarInfo> dbJarInfos) {
+        String grade = "";
+        for (JarInfo dbJarInfo : dbJarInfos) {
+            if (dependency.getGroupId().equals(dbJarInfo.getG()) && dependency.getArtifactId().equals(dbJarInfo.getA()) && dependency.getVersion().equals(dbJarInfo.getV())){
+                return dbJarInfo.getGrade();
+            }
+        }
+        return grade;
+    }
+
+    private List<Dependency> getPomDependency(String pomPath,Dependency rootNode) throws Exception {
+        /*final Model model = getModel(new File(pomPath));
+        return model.getDependencies();*/
+
+        File pomFile = new File(pomPath);
+        String dependencyTreeFilePath = pomFile.getParent() +File.separator + "pom.txt";
+        Reader r = null;
+        try {
+            // 将pom文件解析成依赖树，将结果存入txt文件
+            getDependencyTreeFile(pomFile);
+
+            // 解析依赖树文件，得到所有的依赖
+            InputType type = InputType.TEXT;
+            r = new BufferedReader(new InputStreamReader(new FileInputStream(dependencyTreeFilePath), "UTF-8"));
+            Parser parser = type.newParser();
+            Node root = parser.parse(r);
+
+            // rootNode赋值
+            rootNode.setGroupId(root.getGroupId());
+            rootNode.setArtifactId(root.getArtifactId());
+            rootNode.setVersion(root.getVersion());
+            rootNode.setType(root.getPackaging());
+
+            // 获取依赖组件(直接引用)
+            final List<Dependency> dependencies = root.getChildNodes().stream().map(childNode -> {
+                Dependency dependency = new Dependency();
+                dependency.setGroupId(childNode.getGroupId());
+                dependency.setArtifactId(childNode.getArtifactId());
+                dependency.setVersion(childNode.getVersion());
+                dependency.setType(childNode.getPackaging());
+                return dependency;
+            }).collect(Collectors.toList());
+
+            return dependencies;
+        } finally {
+            if(null != r){
+                r.close();
+            }
+            File dependencyTreeFile = new File(dependencyTreeFilePath);
+            if (dependencyTreeFile.exists()){
+                dependencyTreeFile.delete();
+            }
+        }
+    }
+
+    // 将pom文件解析成依赖树，将结果存入txt文件
+    private void getDependencyTreeFile(File pomFile) throws Exception {
+        InvocationRequest request = new DefaultInvocationRequest();
+        request.setPomFile(pomFile);
+        request.setGoals(Collections.singletonList("dependency:tree -D outputFile=pom.txt"));
+
+        Invoker invoker = new DefaultInvoker();
+        String mavenHome = getMavenHome();
+        System.out.println("maven_home="+mavenHome);
+        invoker.setMavenHome(new File(mavenHome));
+        invoker.execute(request);
+    }
+
+    private String getMavenHome() throws Exception {
+        String mavenHome = System.getenv("MAVEN_HOME");
+        if (Utils.isEmpty(mavenHome)){
+            mavenHome = System.getenv("M2_HOME");
+        }
+        if (Utils.isEmpty(mavenHome)){
+            throw new Exception("没有配置mavne环境变量:MAVEN_HOME");
+        }else {
+            return mavenHome;
+        }
+    }
+
+    private void showJarInfoSecurity(List<JarInfo> jarInfoList,Project project,Dependency rootNode) {
+        CustomExecutor executor = new CustomExecutor(project);
+        executor.showInfo(jarInfoList,rootNode);
+    }
+
+    private List<JarInfo> getJarInfoList(String jarSql) throws Exception {
+        List<JarInfo> jarInfoList = JDBCUtils.findJars(jarSql);
+        return jarInfoList;
+    }
+
+    // select * from jar_info where 1=2 union select * from jar_info where g= and a= and v=
+    private String buildJarSql(List<Dependency> dependencies) {
+        StringBuilder sqlBuilder = new StringBuilder("select group_name,artifact_name,version,grade from jar_info where 1=2");
         for (Dependency dependency : dependencies) {
-            sqlBuilder.append(String.format(" or (group_name='%s' and artifact_name='%s' and version='%s') ",dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion()));
+            sqlBuilder.append(String.format(" union select group_name,artifact_name,version,grade from jar_info where artifact_name='%s' and group_name='%s' and version='%s' ",dependency.getArtifactId(),dependency.getGroupId(),dependency.getVersion()));
         }
-        String sql = sqlBuilder.toString();
-        if (null == sql || sql.length() < 1){
-            return null;
-        }
-        return "select group_name,artifact_name,version,grade from jar_info where 1=2 "+sql;
+        return sqlBuilder.toString();
     }
 
 
