@@ -17,6 +17,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.content.Content;
+import com.seczone.sca.idea.plugin.model.CveInfo;
 import com.seczone.sca.idea.plugin.model.JarInfo;
 import org.apache.maven.model.Dependency;
 import org.jetbrains.annotations.NotNull;
@@ -111,8 +112,9 @@ public class CustomExecutor implements Disposable {
         DefaultMutableTreeNode root=new DefaultMutableTreeNode(String.format("%s:%s@%s:%s",rootNode.getGroupId(),rootNode.getArtifactId(),rootNode.getVersion(),rootNode.getType()));
         for (JarInfo jarInfo : jarInfoList) {
             DefaultMutableTreeNode childNode=new DefaultMutableTreeNode(jarInfo.getShowInfo());
-            // TODO: 2020/9/11 子节点。。。
-            childNode.add(new DefaultMutableTreeNode("cve-2020-0001"));
+            for (CveInfo cveInfo : jarInfo.getCveInfoList()) {
+                childNode.add(new DefaultMutableTreeNode(cveInfo.getShowInfo()));
+            }
             root.add(childNode);
         }
 

@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
 import com.seczone.sca.idea.plugin.component.ShowComponent;
+import com.seczone.sca.idea.plugin.model.CveInfo;
 import com.seczone.sca.idea.plugin.model.JarInfo;
 import com.seczone.sca.idea.plugin.ui.CustomExecutor;
 import com.seczone.sca.idea.plugin.util.JDBCUtils;
@@ -25,6 +26,7 @@ import org.fest.util.Lists;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -71,7 +73,7 @@ public class ComponentSecurityAction extends AnAction {
         // 1.获取组件安全等级
         String jarSql = buildJarSql(dependencies);
         System.out.println("jarSql="+jarSql);
-        List<JarInfo> dbJarInfos = getJarInfoList(jarSql);
+        List<JarInfo> dbJarInfos = JDBCUtils.findJars(jarSql);
         System.out.println("dbJarinfos.size="+dbJarInfos.size());
         for (Dependency dependency : dependencies) {
             String grade = getJarInfoGrade(dependency,dbJarInfos);
@@ -79,11 +81,42 @@ public class ComponentSecurityAction extends AnAction {
             jarInfoList.add(jarInfo);
         }
         // 2.获取组件漏洞
-
+        String jarCveSql = buildJarCveSql(dependencies);
+        System.out.println("jarCveSql="+jarCveSql);
+        List<JarInfo> dbJarCves = JDBCUtils.findJarCves(jarCveSql);
+        System.out.println("dbJarCves.size="+dbJarCves.size());
 
         // 3.获取漏洞安全等级
+        Set<String> cveNos = dbJarCves.stream().map(dbJarCve -> dbJarCve.getCveNo()).collect(Collectors.toSet());
+        List<CveInfo> dbCves = Lists.newArrayList();
+        if (cveNos.size()>0) {
+            String cveSql = buildCveSql(cveNos);
+            System.out.println("cveSql="+cveSql);
+            dbCves = JDBCUtils.findCves(cveSql);
+        }
+
+        for (JarInfo jarInfo : jarInfoList) {
+            // 获取该组件漏洞
+            List<CveInfo> jarCveList = Lists.newArrayList();
+            Set<String> jarCveNos = dbJarCves.stream().filter(dbJarCve -> dbJarCve.getG().equals(jarInfo.getG()) && dbJarCve.getA().equals(jarInfo.getA()) && dbJarCve.getV().equals(jarInfo.getV()) && !"0".equals(dbJarCve.getCveNo())).map(jarCve -> jarCve.getCveNo()).collect(Collectors.toSet());
+            for (String jarCveNo : jarCveNos) {
+                CveInfo cveInfo = new CveInfo(jarCveNo,null,getCveSeverity(jarCveNo,dbCves));
+                jarCveList.add(cveInfo);
+            }
+            jarInfo.setCveInfoList(jarCveList);
+        }
 
         return jarInfoList;
+    }
+
+    private String getCveSeverity(String jarCveNo, List<CveInfo> dbCves) {
+        String severity ="unknown";
+        for (CveInfo dbCve : dbCves) {
+            if(jarCveNo.equals(dbCve.getName())){
+                return dbCve.getSeverity();
+            }
+        }
+        return severity;
     }
 
     private String getJarInfoGrade(Dependency dependency, List<JarInfo> dbJarInfos) {
@@ -171,11 +204,6 @@ public class ComponentSecurityAction extends AnAction {
         executor.showInfo(jarInfoList,rootNode);
     }
 
-    private List<JarInfo> getJarInfoList(String jarSql) throws Exception {
-        List<JarInfo> jarInfoList = JDBCUtils.findJars(jarSql);
-        return jarInfoList;
-    }
-
     // select * from jar_info where 1=2 union select * from jar_info where g= and a= and v=
     private String buildJarSql(List<Dependency> dependencies) {
         StringBuilder sqlBuilder = new StringBuilder("select group_name,artifact_name,version,grade from jar_info where 1=2");
@@ -183,6 +211,26 @@ public class ComponentSecurityAction extends AnAction {
             sqlBuilder.append(String.format(" union select group_name,artifact_name,version,grade from jar_info where artifact_name='%s' and group_name='%s' and version='%s' ",dependency.getArtifactId(),dependency.getGroupId(),dependency.getVersion()));
         }
         return sqlBuilder.toString();
+    }
+
+    // select * from t_vulnerable where 1=2 union select * from t_vulnerable where g= and a= and v=
+    private String buildJarCveSql(List<Dependency> dependencies) {
+        StringBuilder sqlBuilder = new StringBuilder("select g,a,v,custom_cve_no from t_vulnerable where 1=2");
+        for (Dependency dependency : dependencies) {
+            sqlBuilder.append(String.format(" union select g,a,v,custom_cve_no from t_vulnerable where g='%s' and a='%s' and v='%s' ",dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion()));
+        }
+        return sqlBuilder.toString();
+    }
+
+    // select * from t_cve where name in()
+    private String buildCveSql(Set<String> cveNos) {
+        StringBuilder sqlBuilder = new StringBuilder();
+        for (String cveNo : cveNos) {
+            sqlBuilder.append(String.format("'%s',",cveNo));
+        }
+        String sql = sqlBuilder.toString();
+        sql = sql.substring(0,sql.length()-1);
+        return String.format("select name,severity from t_cve where name in(%s)",sql);
     }
 
 

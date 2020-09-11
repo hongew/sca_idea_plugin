@@ -22,8 +22,14 @@ public class JarInfo {
     private String grade;
     private String showInfo;
     private List<CveInfo> cveInfoList = Lists.newArrayList();
+    private String cveNo;
 
     public JarInfo(){}
+    public JarInfo(String g, String a, String v) {
+        this.g = g;
+        this.a = a;
+        this.v = v;
+    }
     public JarInfo(String g, String a, String v, String grade) {
         this.g = g;
         this.a = a;

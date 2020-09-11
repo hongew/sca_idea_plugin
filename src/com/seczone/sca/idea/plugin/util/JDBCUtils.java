@@ -1,6 +1,7 @@
 package com.seczone.sca.idea.plugin.util;
 
 import com.intellij.openapi.ui.Messages;
+import com.seczone.sca.idea.plugin.model.CveInfo;
 import com.seczone.sca.idea.plugin.model.JarInfo;
 
 import java.io.FileReader;
@@ -96,6 +97,57 @@ public class JDBCUtils {
                 String version = rs.getString("version");
                 String grade = rs.getString("grade");
                 bean = new JarInfo(groupName,artifactName,version,grade);
+                list.add(bean);
+            }
+        }finally {
+            JDBCUtils.close(rs,st,conn);
+        }
+        return list;
+    }
+
+    // 查询组件cve数据
+    public static List<JarInfo> findJarCves(String sql) throws Exception{
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+        List<JarInfo> list = new ArrayList<>();
+        try {
+            conn = JDBCUtils.getConnection();
+            st = conn.createStatement();
+            //执行sql
+            rs = st.executeQuery(sql);
+            JarInfo bean = null;
+            while (rs.next()){
+                String groupName = rs.getString("g");
+                String artifactName = rs.getString("a");
+                String version = rs.getString("v");
+                String cveNo = rs.getString("custom_cve_no");
+                bean = new JarInfo(groupName,artifactName,version);
+                bean.setCveNo(cveNo);
+                list.add(bean);
+            }
+        }finally {
+            JDBCUtils.close(rs,st,conn);
+        }
+        return list;
+    }
+
+    // 查询cve风险等级数据
+    public static List<CveInfo> findCves(String sql) throws Exception{
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+        List<CveInfo> list = new ArrayList<>();
+        try {
+            conn = JDBCUtils.getConnection();
+            st = conn.createStatement();
+            //执行sql
+            rs = st.executeQuery(sql);
+            CveInfo bean = null;
+            while (rs.next()){
+                String name = rs.getString("name");
+                String severity = rs.getString("severity");
+                bean = new CveInfo(name,null,severity);
                 list.add(bean);
             }
         }finally {

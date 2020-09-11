@@ -30,7 +30,7 @@ public class CveInfo {
 
     public String getShowInfo() {
         String gradeStr=(null == severity || severity.length() <1)?"unknown":severity;
-        return gradeStr+"   "+String.format("%s:%s@%s",name,description);
+        return gradeStr+"   "+name+"   "+description;
     }
 
 
