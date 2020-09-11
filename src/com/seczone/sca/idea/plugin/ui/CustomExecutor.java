@@ -106,7 +106,7 @@ public class CustomExecutor implements Disposable {
         List<String> collect = jarInfoList.stream().map(jarInfo -> jarInfo.getShowInfo()).collect(Collectors.toList());
 
 //        JPanel panel = new JPanel();
-        // 填充数据
+        // 填充节点数据
         DefaultMutableTreeNode root=new DefaultMutableTreeNode("pom dependency");
         for (String s : collect) {
             DefaultMutableTreeNode childNode=new DefaultMutableTreeNode(s);
@@ -118,17 +118,15 @@ public class CustomExecutor implements Disposable {
         // 创建渲染器
         DefaultTreeCellRenderer render = new DefaultTreeCellRenderer();
         // 设置节点字体，以及 选中 和 未选中 时的颜色
-        render.setFont(new Font("SansSerif", Font.BOLD, 24));
+        render.setFont(new Font("Monospaced", Font.PLAIN, 18));
         render.setTextSelectionColor(Color.yellow);
 //        render.setTextNonSelectionColor(Color.black);
-
         // 设置节点 选中 和 未选中 时的背景颜色
 //        render.setBackgroundSelectionColor(Color.black);
         render.setBackgroundNonSelectionColor(Color.darkGray);
 
         JTree tree=new JTree(root);
         tree.setCellRenderer(render);
-//        panel.add(tree);
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setViewportBorder(BorderFactory.createEtchedBorder());

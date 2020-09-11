@@ -25,13 +25,8 @@ public class ComponentSecurityAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-//        ShowComponent showComponent = null;
         try {
             System.out.println("actionPerformed start===");
-//            Application application = ApplicationManager.getApplication();
-//            showComponent = application.getComponent(ShowComponent.class);
-            // 获取当前在操作的工程上下文
-//            final Project project = e.getData(PlatformDataKeys.PROJECT);
             // 获取当前操作的pom文件
             final PsiFile psiFile = e.getData(PlatformDataKeys.PSI_FILE);
             String pomPath = psiFile.getVirtualFile().getPath();
