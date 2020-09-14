@@ -1,12 +1,8 @@
 package com.seczone.sca.idea.plugin.model;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.seczone.sca.idea.plugin.util.Utils;
-import lombok.Data;
-import org.fest.util.Lists;
 
-import java.util.List;
 
 /**
  * @description: 组件漏洞信息
@@ -14,7 +10,6 @@ import java.util.List;
  * @create: 2020-09-11 10:17
  **/
 
-@Data
 public class CveInfo {
 
     private String name;
@@ -34,9 +29,27 @@ public class CveInfo {
         return gradeStr+"   "+name+"   "+ (Utils.isEmpty(description)?"":description);
     }
 
+    public String getName() {
+        return name;
+    }
 
-    @Override
-    public String toString() {
-        return JSONObject.toJSONString(this);
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
     }
 }

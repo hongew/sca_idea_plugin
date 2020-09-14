@@ -21,9 +21,9 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.shared.invoker.*;
-import org.fest.util.Lists;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class ComponentSecurityAction extends AnAction {
 
     // 获取依赖组件安全等级及漏洞信息
     private List<JarInfo> getDependencySecurityData(List<Dependency> dependencies) throws Exception {
-        List<JarInfo> jarInfoList = Lists.newArrayList();
+        List<JarInfo> jarInfoList = new ArrayList();;
         // 1.获取组件安全等级
         String jarSql = buildJarSql(dependencies);
         System.out.println("jarSql="+jarSql);
@@ -87,7 +87,7 @@ public class ComponentSecurityAction extends AnAction {
 
         // 3.获取漏洞安全等级
         Set<String> cveNos = dbJarCves.stream().map(dbJarCve -> dbJarCve.getCveNo()).collect(Collectors.toSet());
-        List<CveInfo> dbCves = Lists.newArrayList();
+        List<CveInfo> dbCves = new ArrayList();
         if (cveNos.size()>0) {
             String cveSql = buildCveSql(cveNos);
             System.out.println("cveSql="+cveSql);
@@ -97,7 +97,7 @@ public class ComponentSecurityAction extends AnAction {
 
         for (JarInfo jarInfo : jarInfoList) {
             // 获取该组件漏洞
-            List<CveInfo> jarCveList = Lists.newArrayList();
+            List<CveInfo> jarCveList = new ArrayList();
             Set<String> jarCveNos = dbJarCves.stream().filter(dbJarCve -> dbJarCve.getG().equals(jarInfo.getG()) && dbJarCve.getA().equals(jarInfo.getA()) && dbJarCve.getV().equals(jarInfo.getV()) && !"0".equals(dbJarCve.getCveNo())).map(jarCve -> jarCve.getCveNo()).collect(Collectors.toSet());
             for (String jarCveNo : jarCveNos) {
                 CveInfo cveInfo = new CveInfo(jarCveNo,null,getCveSeverity(jarCveNo,dbCves));
@@ -187,7 +187,7 @@ public class ComponentSecurityAction extends AnAction {
         InvocationResult invocationResult = invoker.execute(request);
         int exitCode = invocationResult.getExitCode();
         if (0!=exitCode){
-            throw new Exception("解析pom文件失败，请检查格式是否正确");
+            throw new Exception("获取pom文件依赖组件失败，请使用命令：mvn dependency:tree 查询原因");
         }
     }
 

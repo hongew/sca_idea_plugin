@@ -1,10 +1,8 @@
 package com.seczone.sca.idea.plugin.model;
 
 
-import com.alibaba.fastjson.JSONObject;
-import lombok.Data;
-import org.fest.util.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,7 +11,6 @@ import java.util.List;
  * @create: 2020-09-09 16:17
  **/
 
-@Data
 public class JarInfo {
 
     private String g;
@@ -21,7 +18,7 @@ public class JarInfo {
     private String v;
     private String grade;
     private String showInfo;
-    private List<CveInfo> cveInfoList = Lists.newArrayList();
+    private List<CveInfo> cveInfoList = new ArrayList();
     private String cveNo;
 
     public JarInfo(){}
@@ -42,9 +39,51 @@ public class JarInfo {
         return gradeStr+"   "+String.format("%s:%s@%s",g,a,v);
     }
 
+    public String getG() {
+        return g;
+    }
 
-    @Override
-    public String toString() {
-        return JSONObject.toJSONString(this);
+    public void setG(String g) {
+        this.g = g;
+    }
+
+    public String getA() {
+        return a;
+    }
+
+    public void setA(String a) {
+        this.a = a;
+    }
+
+    public String getV() {
+        return v;
+    }
+
+    public void setV(String v) {
+        this.v = v;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
+    public List<CveInfo> getCveInfoList() {
+        return cveInfoList;
+    }
+
+    public void setCveInfoList(List<CveInfo> cveInfoList) {
+        this.cveInfoList = cveInfoList;
+    }
+
+    public String getCveNo() {
+        return cveNo;
+    }
+
+    public void setCveNo(String cveNo) {
+        this.cveNo = cveNo;
     }
 }
