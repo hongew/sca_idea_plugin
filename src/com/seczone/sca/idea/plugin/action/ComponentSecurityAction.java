@@ -1,5 +1,6 @@
 package com.seczone.sca.idea.plugin.action;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -23,10 +24,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.shared.invoker.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -153,15 +151,19 @@ public class ComponentSecurityAction extends AnAction {
             rootNode.setType(root.getPackaging());
 
             // 获取依赖组件(直接引用)
-            final List<Dependency> dependencies = root.getChildNodes().stream().map(childNode -> {
+            /*final List<Dependency> dependencies = root.getChildNodes().stream().map(childNode -> {
                 Dependency dependency = new Dependency();
                 dependency.setGroupId(childNode.getGroupId());
                 dependency.setArtifactId(childNode.getArtifactId());
                 dependency.setVersion(childNode.getVersion());
                 dependency.setType(childNode.getPackaging());
                 return dependency;
-            }).collect(Collectors.toList());
+            }).collect(Collectors.toList());*/
 
+            // 获取所有依赖
+            List<Dependency> dependencies = new ArrayList<>();
+            root.getChildNodes().stream().forEach(childNode ->parseChilidDependency(childNode,dependencies));
+            System.out.println("dependencies.size="+dependencies.size());
             return dependencies;
         } finally {
             if(null != r){
@@ -172,6 +174,26 @@ public class ComponentSecurityAction extends AnAction {
                 dependencyTreeFile.delete();
             }
         }
+    }
+
+    private void parseChilidDependency(Node node, List<Dependency> dependencies) {
+        List<String> validScope = new ArrayList();
+        validScope.add("compile");validScope.add("runtime");
+        String scope = node.getScope();
+        if (validScope.contains(scope) || Utils.isEmpty(scope)) {
+            Dependency dependency = new Dependency();
+            dependency.setGroupId(node.getGroupId());
+            dependency.setArtifactId(node.getArtifactId());
+            dependency.setVersion(node.getVersion());
+            dependency.setType(node.getPackaging());
+            dependencies.add(dependency);
+
+            LinkedList<Node> childNodes = node.getChildNodes();
+            if (Utils.isNotEmpty(childNodes)) {
+                childNodes.forEach(child -> parseChilidDependency(child, dependencies));
+            }
+        }
+
     }
 
     // 将pom文件解析成依赖树，将结果存入txt文件
