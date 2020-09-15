@@ -25,7 +25,7 @@ public class CveInfo {
     }
 
     public String getShowInfo() {
-        String gradeStr=(null == severity || severity.length() <1)?"UNKNOWN":severity;
+        String gradeStr=(null == severity || severity.length() <1)?"UNKNOWN":getSeverity();
         return gradeStr+"   "+name+"   "+ (Utils.isEmpty(description)?"":description);
     }
 
@@ -46,6 +46,15 @@ public class CveInfo {
     }
 
     public String getSeverity() {
+        if ("高危".equals(severity)){
+            severity = "HIGH";
+        }else if("中危".equals(severity)){
+            severity = "MEDIUM";
+        }else if("超危".equals(severity)){
+            severity = "CRITICAL";
+        }else if("低危".equals(severity)){
+            severity = "LOW";
+        }
         return severity;
     }
 

@@ -85,9 +85,10 @@ public class ComponentSecurityAction extends AnAction {
 
         // 3.获取漏洞安全等级
         Set<String> cveNos = dbJarCves.stream().map(dbJarCve -> dbJarCve.getCveNo()).collect(Collectors.toSet());
+        Set<String> cnnvdNos = dbJarCves.stream().map(dbJarCve -> dbJarCve.getCnnvdNo()).collect(Collectors.toSet());
         List<CveInfo> dbCves = new ArrayList();
-        if (cveNos.size()>0) {
-            String cveSql = buildCveSql(cveNos);
+        if (cveNos.size()>0 || cnnvdNos.size()>0) {
+            String cveSql = buildCveSql(cveNos,cnnvdNos);
             System.out.println("cveSql="+cveSql);
             dbCves = JDBCUtils.findCves(cveSql);
             System.out.println("dbCves.size="+dbCves.size());
@@ -97,6 +98,10 @@ public class ComponentSecurityAction extends AnAction {
             // 获取该组件漏洞
             List<CveInfo> jarCveList = new ArrayList();
             Set<String> jarCveNos = dbJarCves.stream().filter(dbJarCve -> dbJarCve.getG().equals(jarInfo.getG()) && dbJarCve.getA().equals(jarInfo.getA()) && dbJarCve.getV().equals(jarInfo.getV()) && !"0".equals(dbJarCve.getCveNo())).map(jarCve -> jarCve.getCveNo()).collect(Collectors.toSet());
+            Set<String> jarCnnvdNos = dbJarCves.stream().filter(dbJarCve -> dbJarCve.getG().equals(jarInfo.getG()) && dbJarCve.getA().equals(jarInfo.getA()) && dbJarCve.getV().equals(jarInfo.getV()) && !"0".equals(dbJarCve.getCnnvdNo())).map(jarCve -> jarCve.getCnnvdNo()).collect(Collectors.toSet());
+            if (jarCnnvdNos.size()>0){
+                jarCveNos.addAll(jarCnnvdNos);
+            }
             for (String jarCveNo : jarCveNos) {
                 CveInfo cveInfo = new CveInfo(jarCveNo,null,getCveSeverity(jarCveNo,dbCves));
                 jarCveList.add(cveInfo);
@@ -230,33 +235,47 @@ public class ComponentSecurityAction extends AnAction {
         executor.showInfo(jarInfoList,rootNode);
     }
 
-    // select * from jar_info where 1=2 union select * from jar_info where g= and a= and v=
+    // select * from t_component where 1=2 union select * from t_component where g= and a= and v=
     private String buildJarSql(List<Dependency> dependencies) {
-        StringBuilder sqlBuilder = new StringBuilder("select group_name,artifact_name,version,grade from jar_info where 1=2");
+        StringBuilder sqlBuilder = new StringBuilder("select group_name,artifact_name,version,grade from t_component where 1=2");
         for (Dependency dependency : dependencies) {
-            sqlBuilder.append(String.format(" union select group_name,artifact_name,version,grade from jar_info where artifact_name='%s' and group_name='%s' and version='%s' ",dependency.getArtifactId(),dependency.getGroupId(),dependency.getVersion()));
+            sqlBuilder.append(String.format(" union select group_name,artifact_name,version,ifnull(grade,'NONE') as grade from t_component where group_name='%s' and artifact_name='%s' and version='%s' ",dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion()));
         }
         return sqlBuilder.toString();
     }
 
     // select * from t_vulnerable where 1=2 union select * from t_vulnerable where g= and a= and v=
     private String buildJarCveSql(List<Dependency> dependencies) {
-        StringBuilder sqlBuilder = new StringBuilder("select g,a,v,custom_cve_no from t_vulnerable where 1=2");
+        StringBuilder sqlBuilder = new StringBuilder("select g,a,v,custom_cve_no,custom_cnnvd_no from t_vulnerable where 1=2");
         for (Dependency dependency : dependencies) {
-            sqlBuilder.append(String.format(" union select g,a,v,custom_cve_no from t_vulnerable where g='%s' and a='%s' and v='%s' ",dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion()));
+            sqlBuilder.append(String.format(" union select g,a,v,custom_cve_no,custom_cnnvd_no from t_vulnerable where g='%s' and a='%s' and v='%s' ",dependency.getGroupId(),dependency.getArtifactId(),dependency.getVersion()));
         }
         return sqlBuilder.toString();
     }
 
     // select * from t_cve where name in()
-    private String buildCveSql(Set<String> cveNos) {
+    // select * from t_cnnvd where cnnvd_id in()
+    private String buildCveSql(Set<String> cveNos,Set<String> cnnvdNos) {
         StringBuilder sqlBuilder = new StringBuilder();
-        for (String cveNo : cveNos) {
-            sqlBuilder.append(String.format("'%s',",cveNo));
+        if (cveNos.size()>0){
+            StringBuilder cveSqlBuilder = new StringBuilder();
+            for (String cveNo : cveNos) {
+                cveSqlBuilder.append(String.format("'%s',",cveNo));
+            }
+            String cveSql = cveSqlBuilder.toString();
+            cveSql = cveSql.substring(0,cveSql.length()-1);
+            sqlBuilder.append(String.format("select name,severity from t_cve where name in(%s)",cveSql));
         }
-        String sql = sqlBuilder.toString();
-        sql = sql.substring(0,sql.length()-1);
-        return String.format("select name,severity from t_cve where name in(%s)",sql);
+        if (cnnvdNos.size()>0){
+            StringBuilder cnnvdSqlBuilder = new StringBuilder();
+            for (String cnnvdNo : cnnvdNos) {
+                cnnvdSqlBuilder.append(String.format("'%s',",cnnvdNo));
+            }
+            String cnnvdSql = cnnvdSqlBuilder.toString();
+            cnnvdSql = cnnvdSql.substring(0,cnnvdSql.length()-1);
+            sqlBuilder.append(String.format(" union select cnnvd_id name,severity from t_cnnvd where cnnvd_id in(%s)",cnnvdSql));
+        }
+        return sqlBuilder.toString();
     }
 
 

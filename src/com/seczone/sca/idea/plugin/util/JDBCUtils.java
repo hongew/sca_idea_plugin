@@ -20,7 +20,8 @@ public class JDBCUtils {
 
     private static String username;
     private static String password;
-    private static String jdbcUrl;
+    private static String jdbcUrl1;
+    private static String jdbcUrl2;
     private  static String driverClassName;
 
     static {
@@ -31,7 +32,8 @@ public class JDBCUtils {
 
             username = properties.getProperty("username");
             password = properties.getProperty("password");
-            jdbcUrl = properties.getProperty("jdbcUrl");
+            jdbcUrl1 = properties.getProperty("jdbcUrl1");
+            jdbcUrl2 = properties.getProperty("jdbcUrl2");
             driverClassName = properties.getProperty("driverClassName");
             // 注册驱动
             Class.forName(driverClassName);
@@ -41,11 +43,20 @@ public class JDBCUtils {
         }
     }
     /**
-     * 获取连接
+     * 获取连接 portal
      * @return 连接对象
      */
-    public static Connection getConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+    public static Connection getConnection1() throws SQLException {
+        Connection conn = DriverManager.getConnection(jdbcUrl1, username, password);
+        return conn;
+    }
+
+    /**
+     * 获取连接 base
+     * @return 连接对象
+     */
+    public static Connection getConnection2() throws SQLException {
+        Connection conn = DriverManager.getConnection(jdbcUrl2, username, password);
         return conn;
     }
 
@@ -86,7 +97,7 @@ public class JDBCUtils {
         ResultSet rs = null;
         List<JarInfo> list = new ArrayList<>();
         try {
-            conn = JDBCUtils.getConnection();
+            conn = JDBCUtils.getConnection1();
             st = conn.createStatement();
             //执行sql
             rs = st.executeQuery(sql);
@@ -112,7 +123,7 @@ public class JDBCUtils {
         ResultSet rs = null;
         List<JarInfo> list = new ArrayList<>();
         try {
-            conn = JDBCUtils.getConnection();
+            conn = JDBCUtils.getConnection2();
             st = conn.createStatement();
             //执行sql
             rs = st.executeQuery(sql);
@@ -122,8 +133,10 @@ public class JDBCUtils {
                 String artifactName = rs.getString("a");
                 String version = rs.getString("v");
                 String cveNo = rs.getString("custom_cve_no");
+                String cnnvdNo = rs.getString("custom_cnnvd_no");
                 bean = new JarInfo(groupName,artifactName,version);
                 bean.setCveNo(cveNo);
+                bean.setCnnvdNo(cnnvdNo);
                 list.add(bean);
             }
         }finally {
@@ -139,7 +152,7 @@ public class JDBCUtils {
         ResultSet rs = null;
         List<CveInfo> list = new ArrayList<>();
         try {
-            conn = JDBCUtils.getConnection();
+            conn = JDBCUtils.getConnection2();
             st = conn.createStatement();
             //执行sql
             rs = st.executeQuery(sql);

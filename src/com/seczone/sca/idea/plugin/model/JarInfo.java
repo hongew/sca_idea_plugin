@@ -20,6 +20,7 @@ public class JarInfo {
     private String showInfo;
     private List<CveInfo> cveInfoList = new ArrayList();
     private String cveNo;
+    private String cnnvdNo;
 
     public JarInfo(){}
     public JarInfo(String g, String a, String v) {
@@ -85,5 +86,13 @@ public class JarInfo {
 
     public void setCveNo(String cveNo) {
         this.cveNo = cveNo;
+    }
+
+    public String getCnnvdNo() {
+        return cnnvdNo;
+    }
+
+    public void setCnnvdNo(String cnnvdNo) {
+        this.cnnvdNo = cnnvdNo;
     }
 }
